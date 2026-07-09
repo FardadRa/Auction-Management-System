@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Active Items</title>
+    <link rel="stylesheet" href="/static/css/styles.css" th:href="@{/css/styles.css}">
+</head>
+<body>
+<h1>Active Auction Items</h1>
+<ul>
+    <th:block th:each="item : ${items}">
+        <li>
+            <strong>Name:</strong> <span th:text="${item.itemName}"></span> <br>
+            <strong>Description:</strong> <span th:text="${item.description}"></span> <br>
+            <strong>Type:</strong> <span th:text="${item.auctionType}"></span> <br>
+            <strong>Price:</strong> <span th:text="${item.currentPrice}"></span> <br>
+        </li>
+    </th:block>
+</ul>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Auction System Front End</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .auction {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    form {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+    label {
+      display: inline-block;
+      width: 120px;
+      margin-bottom: 5px;
+    }
+    input {
+      padding: 5px;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Auction System</h1>
+
+  <section>
+    <h2>Active Auctions</h2>
+    <div id="auctionList">Loading auctions...</div>
+  </section>
+
+  <section>
+    <h2>Place a Forward Bid</h2>
+    <form id="forwardBidForm">
+      <label for="auctionId">Auction ID:</label>
+      <input type="number" id="auctionId" name="auctionId" required><br>
+      <label for="bidderId">Bidder ID:</label>
+      <input type="number" id="bidderId" name="bidderId" required><br>
+      <label for="bidAmount">Bid Amount:</label>
+      <input type="number" id="bidAmount" name="bidAmount" required><br>
+      <button type="submit">Place Bid</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Dutch Auction - Buy Now</h2>
+    <form id="dutchBidForm">
+      <label for="auctionIdDutch">Auction ID:</label>
+      <input type="number" id="auctionIdDutch" name="auctionIdDutch" required><br>
+      <label for="bidderIdDutch">Bidder ID:</label>
+      <input type="number" id="bidderIdDutch" name="bidderIdDutch" required><br>
+      <button type="submit">Buy Now</button>
+    </form>
+  </section>
+
+  <script>
+    // Function to load active auctions from the backend
+    function loadAuctions() {
+      fetch("http://localhost:8080/api/auctions/active")
+        .then(response => response.json())
+        .then(data => {
+          console.log("Auctions received:", data);
+          const auctionList = document.getElementById("auctionList");
+          auctionList.innerHTML = "";
+          data.forEach(auction => {
+            // Try both camelCase and snake_case for keys
+            const id = auction.id;
+            const itemName = auction.itemName || auction.item_name;
+            const description = auction.description;
+            const auctionType = auction.auctionType || auction.auction_type;
+            const currentPrice = auction.currentPrice || auction.current_price;
+            const status = auction.status;
+  
+            const div = document.createElement("div");
+            div.className = "auction";
+            div.innerHTML = `<strong>ID:</strong> ${id}<br>
+                             <strong>Item:</strong> ${itemName}<br>
+                             <strong>Description:</strong> ${description}<br>
+                             <strong>Type:</strong> ${auctionType}<br>
+                             <strong>Current Price:</strong> ${currentPrice}<br>
+                             <strong>Status:</strong> ${status}`;
+            auctionList.appendChild(div);
+          });
+        })
+        .catch(error => {
+          console.error("Error loading auctions:", error);
+          document.getElementById("auctionList").innerText = "Error loading auctions.";
+        });
+    }
+    loadAuctions();
+
+    // Handle submission for placing a forward bid
+    document.getElementById("forwardBidForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const auctionId = document.getElementById("auctionId").value;
+      const bidderId = document.getElementById("bidderId").value;
+      const bidAmount = document.getElementById("bidAmount").value;
+      const url = `http://localhost:8080/api/bids/forward?auctionId=${auctionId}&bidderId=${bidderId}&bidAmount=${bidAmount}`;
+      
+      fetch(url, { method: "POST" })
+        .then(response => {
+          if (response.ok) {
+            alert("Bid placed successfully!");
+            loadAuctions();
+          } else {
+            alert("Error placing bid");
+          }
+        })
+        .catch(error => {
+          console.error("Error placing bid:", error);
+          alert("Error placing bid");
+        });
+    });
+
+    // Handle submission for Dutch auction "Buy Now"
+    document.getElementById("dutchBidForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const auctionId = document.getElementById("auctionIdDutch").value;
+      const bidderId = document.getElementById("bidderIdDutch").value;
+      const url = `http://localhost:8080/api/bids/dutch?auctionId=${auctionId}&bidderId=${bidderId}`;
+      
+      fetch(url, { method: "POST" })
+        .then(response => {
+          if (response.ok) {
+            alert("Buy now successful!");
+            loadAuctions();
+          } else {
+            alert("Error executing buy now");
+          }
+        })
+        .catch(error => {
+          console.error("Error executing buy now:", error);
+          alert("Error executing buy now");
+        });
+    });
+  </script>
+</body>
+</html>
